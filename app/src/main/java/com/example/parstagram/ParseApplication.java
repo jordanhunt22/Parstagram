@@ -3,6 +3,7 @@ package com.example.parstagram;
 import android.app.Application;
 
 import com.parse.Parse;
+import com.parse.ParseObject;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -11,6 +12,9 @@ public class ParseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Register Parse models
+        ParseObject.registerSubclass(Post.class);
 
         // Set applicationId, and server server based on the values in the Heroku settings.
         // ClientKey is not needed unless explicitly configured
