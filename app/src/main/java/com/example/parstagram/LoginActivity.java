@@ -2,6 +2,7 @@ package com.example.parstagram;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         if (ParseUser.getCurrentUser() != null){
-            goMainActivity();;
+            goMainActivity();
         }
 
         etUsername = findViewById(R.id.etUsername);
