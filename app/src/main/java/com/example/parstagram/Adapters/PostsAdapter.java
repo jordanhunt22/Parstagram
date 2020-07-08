@@ -19,6 +19,7 @@ import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.example.parstagram.Post;
 import com.example.parstagram.PostDetailActivity;
 import com.example.parstagram.R;
+import com.example.parstagram.TimeFormat.TimeFormatter;
 import com.parse.ParseFile;
 
 import org.parceler.Parcels;
@@ -60,13 +61,15 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
 
         private TextView tvUsername;
         private ImageView ivImage;
-        private TextView tvDescription;
+        private TextView tvBody;
+        private TextView tvCreatedAt;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvUsername = itemView.findViewById(R.id.tvUsername);
             ivImage = itemView.findViewById(R.id.ivImage);
-            tvDescription = itemView.findViewById(R.id.tvDescription);
+            tvBody = itemView.findViewById(R.id.tvBody);
+            tvCreatedAt = itemView.findViewById(R.id.tvCreatedAt);
             itemView.setOnClickListener(new View.OnClickListener() {
                 // Shows PostDetail Activity when user clicks on a row
                 @Override
@@ -90,8 +93,10 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
 
         public void bind(Post post) {
             // Bind the post data to the view elements
-            tvDescription.setText(post.getDescription());
+            tvBody.setText(post.getDescription());
             tvUsername.setText(post.getUser().getUsername());
+            tvCreatedAt
+                    .setText(TimeFormatter.getTimeDifference(post.getCreatedAt().toString()));
             ParseFile image = post.getImage();
             if (image != null) {
                 Glide.with(context)
