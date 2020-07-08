@@ -10,7 +10,7 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="100dp"
         app:srcCompat="@mipmap/nav_logo_whiteout" />
 
     <EditText
@@ -24,7 +24,8 @@
         android:layout_marginEnd="12dp"
         android:ems="10"
         android:hint="username"
-        android:inputType="textPersonName" />
+        android:inputType="textPersonName"
+        android:outlineProvider="background" />
 
     <EditText
         android:id="@+id/etPassword"
@@ -39,7 +40,8 @@
         android:layout_marginEnd="12dp"
         android:ems="10"
         android:hint="password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:outlineProvider="bounds" />
 
     <Button
         android:id="@+id/btnLogin"
@@ -51,5 +53,19 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="12dp"
+        android:background="@android:color/holo_blue_light"
         android:text="LOGIN" />
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/etPassword"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        android:background="@android:color/holo_green_light"
+        android:text="Register" />
 </LinearLayout>
