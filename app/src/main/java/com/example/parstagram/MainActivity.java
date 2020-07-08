@@ -1,5 +1,6 @@
 package com.example.parstagram;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,6 +10,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -16,6 +18,7 @@ import android.widget.LinearLayout;
 import com.example.parstagram.Adapters.PostsAdapter;
 import com.example.parstagram.EndlessScroll.EndlessRecyclerViewScrollListener;
 import com.example.parstagram.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -57,8 +60,26 @@ public class MainActivity extends AppCompatActivity {
 
         ivLogo.setImageResource(R.mipmap.nav_logo_whiteout);
 
-        // toolbar.setLogo(R.mipmap.nav_logo_whiteout);
+        // Resolves the bottom navigation bar
+        BottomNavigationView bottomNavigationView = binding.bottomNavigation;
 
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_home:
+                        // do something here
+                        return true;
+                    case R.id.action_create:
+                        // do something here
+                        return true;
+                    case R.id.action_profile:
+                        // do something here
+                        return true;
+                    default: return true;
+                }
+            }
+        });
 
         // Lookup the swipe container view
         swipeContainer = binding.swipeContainer;

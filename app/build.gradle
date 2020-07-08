@@ -10,6 +10,7 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,5 +46,18 @@ dependencies {
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0'
     implementation 'org.parceler:parceler-api:1.1.12'
     annotationProcessor 'org.parceler:parceler:1.1.12'
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "com.google.android.material:material:1.1.0"
+    implementation "androidx.percentlayout:percentlayout:1.0.0"
+    implementation "androidx.vectordrawable:vectordrawable:1.1.0" // VectorDrawableCompat
+    implementation "androidx.vectordrawable:vectordrawable-animated:1.1.0" // AnimatedVectorDrawableCompat
+    implementation "androidx.transition:transition:1.1.0"
+    implementation "androidx.annotation:annotation:1.1.0"
+}
+
+ext {
+    appCompatVersion = '1.0.0'
+    designSupportVersion = '1.0.0'
+    recyclerViewVersion = '1.0.0'
 }
