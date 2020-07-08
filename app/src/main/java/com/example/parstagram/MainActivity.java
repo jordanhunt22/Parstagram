@@ -3,6 +3,7 @@ package com.example.parstagram;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
 
     private RecyclerView rvPosts;
+    private SwipeRefreshLayout swipeContainer;
     protected PostsAdapter adapter;
     protected List<Post> allPosts;
 
@@ -27,6 +29,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Lookup the swipe container view
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                queryPosts();
+            }
+        });
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
 
         rvPosts = findViewById(R.id.rvPosts);
 
@@ -42,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void queryPosts() {
-        ParseQuery<Post> query = ParseQuery.getQuery(Post.class);
+        ParseQuery query = ParseQuery.getQuery(Post.class);
         query.include(Post.KEY_USER);
         // limit query to latest 20 items
         query.setLimit(20);
@@ -56,12 +76,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "Issue with getting posts", e);
                     return;
                 }
+                // Clears the adapter
+                adapter.clear();
+                adapter.addAll(posts);
+
+                // Save received posts to list and notify adapter of new data
+                swipeContainer.setRefreshing(false);
                 for (Post post : posts){
-                    Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
+                        Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
                 }
-                // save received posts to list and notify adapter of new data
-                allPosts.addAll(posts);
-                adapter.notifyDataSetChanged();
             }
         });
     }
