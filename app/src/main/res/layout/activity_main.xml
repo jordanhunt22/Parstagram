@@ -54,7 +54,11 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="0dp"
-                app:menu="@menu/menu_bottom_navigation" />
+                android:background="#FFFFFF"
+                app:itemTextColor="@color/bottom_nav_selector"
+                app:itemIconTint="@color/bottom_nav_selector"
+                app:menu="@menu/menu_bottom_navigation"/>
+
         </RelativeLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
