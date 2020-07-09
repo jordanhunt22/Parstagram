@@ -1,42 +1,53 @@
 package com.example.parstagram;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import com.example.parstagram.Adapters.PostsAdapter;
-import com.example.parstagram.EndlessScroll.EndlessRecyclerViewScrollListener;
+import com.example.parstagram.Fragments.ComposeFragment;
+import com.example.parstagram.Fragments.HomeFragment;
 import com.example.parstagram.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.parse.FindCallback;
 import com.parse.ParseException;
-import com.parse.ParseQuery;
+import com.parse.ParseFile;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = "MainActivity";
-
-    private RecyclerView rvPosts;
-    private SwipeRefreshLayout swipeContainer;
+    public static final String TAG = "CreationActivity";
+    public static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 42;
+    final FragmentManager fragmentManager = getSupportFragmentManager();
+    private EditText etDescription;
+    private Button btnCaptureImage;
+    private ImageView ivPostImage;
+    private Button btnSubmit;
+    private File photoFile;
     private ImageView ivLogo;
-    protected PostsAdapter adapter;
-    protected List<Post> allPosts;
+    public String photoFileName = "photo.jpg";
 
-    private EndlessRecyclerViewScrollListener scrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,135 +77,97 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment fragment;
                 switch (item.getItemId()) {
                     case R.id.action_home:
-                        // do something here
-                        return true;
+                        fragment = new HomeFragment();
+                        break;
                     case R.id.action_create:
-                        // do something here
-                        return true;
+                        fragment = new ComposeFragment();
+                        break;
                     case R.id.action_profile:
-                        // do something here
-                        return true;
+                        fragment = new ComposeFragment();
+                        break;
                     default: return true;
                 }
+                fragmentManager.beginTransaction().replace(R.id.flContainer, fragment).commit();
+                return true;
             }
         });
-
-        // Lookup the swipe container view
-        swipeContainer = binding.swipeContainer;
-        // Setup refresh listener which triggers new data loading
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                // Your code to refresh the list here.
-                // Make sure you call swipeContainer.setRefreshing(false)
-                // once the network request has completed successfully.
-                queryPosts();
-            }
-        });
-        // Configure the refreshing colors
-        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
-
-        rvPosts = binding.rvPosts;
-
-        allPosts = new ArrayList<>();
-        adapter = new PostsAdapter(this, allPosts);
-
-        // set the adapter on the recycler view
-        rvPosts.setAdapter(adapter);
-
-        // set the layout manager on the recycler view
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        rvPosts.setLayoutManager(linearLayoutManager);
-
-        // Implement ScrollListener for infinite scroll
-        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
-            @Override
-            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                // Triggered only when new data needs to be appended to the list
-                // Add whatever code is needed to append new items to the bottom of the list
-                loadMoreData();
-            }
-        };
-
-        // Adds the scroll listener to the RecyclerView
-        rvPosts.addOnScrollListener(scrollListener);
-
-        // query posts from Parstagram
-        queryPosts();
+        // Set default selection
+        bottomNavigationView.setSelectedItemId(R.id.action_home);
     }
 
-    private void loadMoreData() {
-        Log.i(TAG, "loadMoreData() called");
-        ParseQuery query = ParseQuery.getQuery(Post.class);
-        // limits query to items that are older than the last item in the RecyclerView
-        int numPosts = allPosts.size()-1;
-        Post last = allPosts.get(numPosts);
-        // int lastCreated = last.getCreatedAt().toString();
-        query.whereLessThan(Post.KEY_CREATED, last.getCreatedAt());
-        // includes the user who created the post
-        query.include(Post.KEY_USER);
-        // limit query to latest 20 items
-        query.setLimit(20);
-        // order posts by creation date (newest first)
-        query.addDescendingOrder(Post.KEY_CREATED);
-        // start an asynchronous call for posts
-        query.findInBackground(new FindCallback<Post>() {
-            @Override
-            public void done(List<Post> posts, ParseException e) {
-                if (e != null){
-                    Log.e(TAG, "Issue with getting posts", e);
-                    return;
-                }
-                // Adds the new posts to the adapter
-                adapter.addAll(posts);
+    private void launchCamera() {
+        // create Intent to take a picture and return control to the calling application
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Create a File reference for future access
+        photoFile = getPhotoFileUri(photoFileName);
 
-                // Save received posts to list and notify adapter of new data
-                swipeContainer.setRefreshing(false);
-                for (Post post : posts){
-                    Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
-                }
-            }
-        });
+        // wrap File object into a content provider
+        // required for API >= 24
+        // See https://guides.codepath.com/android/Sharing-Content-with-Intents#sharing-files-with-api-24-or-higher
+        Uri fileProvider = FileProvider.getUriForFile(MainActivity.this, "com.codepath.fileprovider", photoFile);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider);
+
+        // If you call startActivityForResult() using an intent that no app can handle, your app will crash.
+        // So as long as the result is not null, it's safe to use the intent.
+        // if (intent.resolveActivity(getPackageManager()) != null) {
+            // Start the image capture intent to take photo
+            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        // }
     }
 
-    private void queryPosts() {
-        ParseQuery query = ParseQuery.getQuery(Post.class);
-        query.include(Post.KEY_USER);
-        // limit query to latest 20 items
-        query.setLimit(20);
-        // order posts by creation date (newest first)
-        query.addDescendingOrder(Post.KEY_CREATED);
-        // start an asynchronous call for posts
-        query.findInBackground(new FindCallback<Post>() {
-            @Override
-            public void done(List<Post> posts, ParseException e) {
-                if (e != null){
-                    Log.e(TAG, "Issue with getting posts", e);
-                    return;
-                }
-                // Clears the adapter
-                adapter.clear();
-                adapter.addAll(posts);
-
-                // Save received posts to list and notify adapter of new data
-                swipeContainer.setRefreshing(false);
-                for (Post post : posts){
-                        Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
-                }
-            }
-        });
-    }
-
-    // Menu icons are inflated just as they were with actionbar
+    @SuppressLint("MissingSuperCall")
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                // by this point we have the camera photo on disk
+                Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+                // RESIZE BITMAP, see section below
+                // Load the taken image into a preview
+                ivPostImage.setImageBitmap(takenImage);
+            } else { // Result was a failure
+                Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
+
+    // Returns the File for a photo stored on disk given the fileName
+    public File getPhotoFileUri(String fileName) {
+        // Get safe storage directory for photos
+        // Use `getExternalFilesDir` on Context to access package-specific directories.
+        // This way, we don't need to request external read/write runtime permissions.
+        File mediaStorageDir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), TAG);
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()){
+            Log.d(TAG, "failed to create directory");
+        }
+
+        // Return the file target for the photo based on filename
+        return new File(mediaStorageDir.getPath() + File.separator + fileName);
+    }
+
+    private void savePost(String description, ParseUser currentUser, File photoFile) {
+        Post post = new Post();
+        post.setDescription(description);
+        post.setImage(new ParseFile(photoFile));
+        post.setUser((currentUser));
+        post.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null){
+                    Log.e(TAG, "Error while saving!", e);
+                    Toast.makeText(MainActivity.this, "Error while saving!", Toast.LENGTH_SHORT).show();
+                }
+                Log.i(TAG, "Post save was successful!");
+                etDescription.setText("");
+                ivPostImage.setImageResource(0);
+            } // parse-dashboard --appId jordan-parstagram --masterKey CodePathMoveFastParse --serverURL "https://jordan-parstagram.herokuapp.com/parse"
+        });
+    }
+
+
 }

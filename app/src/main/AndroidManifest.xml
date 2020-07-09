@@ -14,7 +14,6 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity android:name=".PostDetailActivity"></activity>
-        <activity android:name=".MainActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -33,7 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CreationActivity" />
+        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>
