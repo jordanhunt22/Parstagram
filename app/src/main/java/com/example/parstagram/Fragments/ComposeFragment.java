@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.parstagram.Post;
@@ -44,6 +45,7 @@ public class ComposeFragment extends Fragment {
     private Button btnSubmit;
     private File photoFile;
     public String photoFileName = "photo.jpg";
+    ProgressBar pb;
 
     public ComposeFragment() {
         // Required empty public constructor
@@ -68,6 +70,7 @@ public class ComposeFragment extends Fragment {
         btnCaptureImage = view.findViewById(R.id.btnCaptureImage);
         ivPostImage = view.findViewById(R.id.ivPostImage);
         btnSubmit = view.findViewById(R.id.btnSubmit);
+        pb = view.findViewById(R.id.pbLoading);
 
         // On click listener for the camera button
         btnCaptureImage.setOnClickListener(new View.OnClickListener() {
@@ -89,6 +92,8 @@ public class ComposeFragment extends Fragment {
                     Toast.makeText(getContext(), "There is no image", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                // on some click or some loading we need to wait for...
+                pb.setVisibility(ProgressBar.VISIBLE);
                 ParseUser currentUser = ParseUser.getCurrentUser();
                 savePost(description, currentUser, photoFile);
             }
@@ -108,15 +113,15 @@ public class ComposeFragment extends Fragment {
 
         // If you call startActivityForResult() using an intent that no app can handle, your app will crash.
         // So as long as the result is not null, it's safe to use the intent.
-        if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+        // if (intent.resolveActivity(getContext().getPackageManager()) != null) {
         // Start the image capture intent to take photo
         startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-         }
+         // }
     }
 
-    @SuppressLint("MissingSuperCall")
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 // by this point we have the camera photo on disk
@@ -124,6 +129,7 @@ public class ComposeFragment extends Fragment {
                 // RESIZE BITMAP, see section below
                 // Load the taken image into a preview
                 ivPostImage.setImageBitmap(takenImage);
+                Toast.makeText(getContext(), "Image was taken!", Toast.LENGTH_SHORT).show();
             } else { // Result was a failure
                 Toast.makeText(getContext(), "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
@@ -161,6 +167,8 @@ public class ComposeFragment extends Fragment {
                 Log.i(TAG, "Post save was successful!");
                 etDescription.setText("");
                 ivPostImage.setImageResource(0);
+                // run a background job and once complete
+                pb.setVisibility(ProgressBar.INVISIBLE);
             } // parse-dashboard --appId jordan-parstagram --masterKey CodePathMoveFastParse --serverURL "https://jordan-parstagram.herokuapp.com/parse"
         });
     }

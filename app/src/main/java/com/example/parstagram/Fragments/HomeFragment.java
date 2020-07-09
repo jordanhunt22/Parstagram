@@ -31,12 +31,12 @@ public class HomeFragment extends Fragment {
 
     public static final String TAG = "HomeFragment";
 
-    private RecyclerView rvPosts;
-    private SwipeRefreshLayout swipeContainer;
+    protected RecyclerView rvPosts;
+    protected SwipeRefreshLayout swipeContainer;
     protected PostsAdapter adapter;
     protected List<Post> allPosts;
 
-    private EndlessRecyclerViewScrollListener scrollListener;
+    protected EndlessRecyclerViewScrollListener scrollListener;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -100,7 +100,7 @@ public class HomeFragment extends Fragment {
         queryPosts();
     }
 
-    private void loadMoreData() {
+    protected void loadMoreData() {
         Log.i(TAG, "loadMoreData() called");
         ParseQuery query = ParseQuery.getQuery(Post.class);
         // limits query to items that are older than the last item in the RecyclerView
@@ -134,7 +134,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void queryPosts() {
+    protected void queryPosts() {
         ParseQuery query = ParseQuery.getQuery(Post.class);
         query.include(Post.KEY_USER);
         // limit query to latest 20 items
