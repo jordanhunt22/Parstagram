@@ -12,18 +12,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.example.parstagram.Adapters.PostsAdapter;
+import com.example.parstagram.Adapters.ProfileAdapter;
 import com.example.parstagram.EndlessScroll.EndlessRecyclerViewScrollListener;
 import com.example.parstagram.LoginActivity;
 import com.example.parstagram.MainActivity;
@@ -36,13 +41,19 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import org.parceler.Parcels;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
-public class ProfileFragment extends HomeFragment {
+public class ProfileFragment extends Fragment {
+
+    public ProfileFragment() {
+        // Required empty public constructor
+    }
 
     public static final String TAG = "HomeFragment";
     public static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 43;
@@ -50,6 +61,13 @@ public class ProfileFragment extends HomeFragment {
     Button btnProfile;
     private File photoFile;
     public String photoFileName = "profilePhoto.jpg";
+    ProfileAdapter pAdapter;
+    protected RecyclerView rvPosts;
+    protected SwipeRefreshLayout swipeContainer;
+    protected List<Post> allPosts;
+    private ImageView ivProfile;
+
+    protected EndlessRecyclerViewScrollListener scrollListener;
 
     @Nullable
     @Override
@@ -61,6 +79,50 @@ public class ProfileFragment extends HomeFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Lookup the swipe container view
+        swipeContainer = view.findViewById(R.id.swipeContainer);
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                queryPosts();
+            }
+        });
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
+        rvPosts = view.findViewById(R.id.rvPosts);
+        ivProfile = view.findViewById(R.id.ivProfile);
+
+        ParseFile profileImage = ParseUser.getCurrentUser().getParseFile("profileImage");
+        if (profileImage != null) {
+            Glide.with(getContext())
+                    .load(profileImage.getUrl())
+                    .transform(new CircleCrop())
+                    .into(ivProfile);
+        } else {
+            Glide.with(getContext())
+                    .load(R.drawable.instagram_user_filled_24)
+                    .transform(new CircleCrop())
+                    .into(ivProfile);
+        }
+
+        allPosts = new ArrayList<>();
+        // Sets GridLayoutManager and changes the adapter
+        pAdapter = new ProfileAdapter(getContext(), allPosts);
+        // set the adapter on the recycler view
+        rvPosts.setAdapter(pAdapter);
+
+        // set the layout manager on the recycler view
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3);
+        rvPosts.setLayoutManager(gridLayoutManager);
+
         btnLogOut = view.findViewById(R.id.btnLogOut);
         btnLogOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,9 +135,25 @@ public class ProfileFragment extends HomeFragment {
         btnProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    launchCamera();
+                launchCamera();
             }
         });
+
+        // Implement ScrollListener for infinite scroll
+        scrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                loadMoreData();
+            }
+        };
+
+        // Adds the scroll listener to the RecyclerView
+        rvPosts.addOnScrollListener(scrollListener);
+
+        // query posts from Parstagram
+        queryPosts();
     }
 
     private void goLogIn() {
@@ -121,6 +199,74 @@ public class ProfileFragment extends HomeFragment {
         }
     }
 
+    protected void loadMoreData() {
+        Log.i(TAG, "loadMoreData() called");
+        ParseQuery query = ParseQuery.getQuery(Post.class);
+        // limits query to items that are older than the last item in the RecyclerView
+        int numPosts = allPosts.size()-1;
+        // only includes items that have the logged in user as the author
+        query.whereEqualTo("user", ParseUser.getCurrentUser());
+        Post last = allPosts.get(numPosts);
+        // int lastCreated = last.getCreatedAt().toString();
+        query.whereLessThan(Post.KEY_CREATED, last.getCreatedAt());
+        // includes the user who created the post
+        query.include(Post.KEY_USER);
+        // limit query to latest 20 items
+        query.setLimit(20);
+        // order posts by creation date (newest first)
+        query.addDescendingOrder(Post.KEY_CREATED);
+        // start an asynchronous call for posts
+        query.findInBackground(new FindCallback<Post>() {
+            @Override
+            public void done(List<Post> posts, ParseException e) {
+                if (e != null){
+                    Log.e(TAG, "Issue with getting posts", e);
+                    return;
+                }
+                // Adds the new posts to the adapter
+                pAdapter.addAll(posts);
+
+                // Save received posts to list and notify adapter of new data
+                swipeContainer.setRefreshing(false);
+                for (Post post : posts){
+                    Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
+                }
+            }
+        });
+    }
+
+
+    protected void queryPosts() {
+        ParseQuery query = ParseQuery.getQuery(Post.class);
+        query.include(Post.KEY_USER);
+        // only includes items that have the logged in user as the author
+        query.whereEqualTo("user", ParseUser.getCurrentUser());
+        // limit query to latest 20 items
+        query.setLimit(20);
+        // order posts by creation date (newest first)
+        query.addDescendingOrder(Post.KEY_CREATED);
+        // start an asynchronous call for posts
+        query.findInBackground(new FindCallback<Post>() {
+            @Override
+            public void done(List<Post> posts, ParseException e) {
+                if (e != null) {
+                    Log.e(TAG, "Issue with getting posts", e);
+                    return;
+                }
+                // Clears the adapter
+                pAdapter.clear();
+                pAdapter.addAll(posts);
+
+                // Save received posts to list and notify adapter of new data
+                swipeContainer.setRefreshing(false);
+                for (Post post : posts) {
+                    Log.i(TAG, "Post: " + post.getDescription() + ", username: " + post.getUser().getUsername());
+                }
+            }
+        });
+
+    }
+
     // Returns the File for a photo stored on disk given the fileName
     public File getPhotoFileUri(String fileName) {
         // Get safe storage directory for photos
@@ -129,7 +275,7 @@ public class ProfileFragment extends HomeFragment {
         File mediaStorageDir = new File(getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES), TAG);
 
         // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()){
+        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
             Log.d(TAG, "failed to create directory");
         }
 
@@ -142,7 +288,7 @@ public class ProfileFragment extends HomeFragment {
         currentUser.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                if (e != null){
+                if (e != null) {
                     Log.e(TAG, "Error while saving!", e);
                     Toast.makeText(getContext(), "Error while saving!", Toast.LENGTH_SHORT).show();
                 }

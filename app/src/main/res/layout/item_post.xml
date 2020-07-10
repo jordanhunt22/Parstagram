@@ -55,7 +55,7 @@
         android:adjustViewBounds="true"
         android:background="@drawable/direct" />
 
-    <ImageView
+    <com.example.parstagram.Icon
         android:id="@+id/ivImage"
         android:layout_width="match_parent"
         android:layout_height="400dp"

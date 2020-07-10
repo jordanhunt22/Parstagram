@@ -117,7 +117,6 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
                         .transform(new CircleCrop())
                         .into(ivProfile);
             } else {
-                //ivImage.setImageResource(android.R.color.transparent);
                 Glide.with(context)
                         .load(R.drawable.instagram_user_filled_24)
                         .transform(new CircleCrop())

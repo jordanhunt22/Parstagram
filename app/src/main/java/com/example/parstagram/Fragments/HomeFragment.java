@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -17,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.example.parstagram.Adapters.PostsAdapter;
+import com.example.parstagram.Adapters.ProfileAdapter;
 import com.example.parstagram.EndlessScroll.EndlessRecyclerViewScrollListener;
 import com.example.parstagram.Post;
 import com.example.parstagram.R;
@@ -80,7 +82,7 @@ public class HomeFragment extends Fragment {
         rvPosts.setAdapter(adapter);
 
         // set the layout manager on the recycler view
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        GridLayoutManager linearLayoutManager = new GridLayoutManager(getContext(), 1);
         rvPosts.setLayoutManager(linearLayoutManager);
 
         // Implement ScrollListener for infinite scroll
@@ -161,12 +163,4 @@ public class HomeFragment extends Fragment {
             }
         });
     }
-
-//    // Menu icons are inflated just as they were with actionbar
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
 }

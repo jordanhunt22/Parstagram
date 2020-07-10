@@ -43,14 +43,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = "CreationActivity";
     public static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 42;
     final FragmentManager fragmentManager = getSupportFragmentManager();
-    private EditText etDescription;
-    private Button btnCaptureImage;
-    private ImageView ivPostImage;
-    private Button btnSubmit;
-    private File photoFile;
     private ImageView ivLogo;
-    public String photoFileName = "photo.jpg";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
