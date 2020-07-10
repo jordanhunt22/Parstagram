@@ -2,7 +2,6 @@ package com.example.parstagram.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Movie;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.FitCenter;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.example.parstagram.Post;
 import com.example.parstagram.PostDetailActivity;
 import com.example.parstagram.R;
@@ -25,7 +24,6 @@ import com.parse.ParseFile;
 import org.parceler.Parcels;
 
 import java.util.List;
-import java.util.Objects;
 
 public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> {
 
@@ -63,6 +61,7 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
         private ImageView ivImage;
         private TextView tvBody;
         private TextView tvCreatedAt;
+        private ImageView ivProfile;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,6 +69,7 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
             ivImage = itemView.findViewById(R.id.ivImage);
             tvBody = itemView.findViewById(R.id.tvBody);
             tvCreatedAt = itemView.findViewById(R.id.tvCreatedAt);
+            ivProfile = itemView.findViewById(R.id.ivProfile);
             itemView.setOnClickListener(new View.OnClickListener() {
                 // Shows PostDetail Activity when user clicks on a row
                 @Override
@@ -109,6 +109,19 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
                         .load(R.drawable.ic_launcher_background)
                         .transform(new CenterCrop())
                         .into(ivImage);
+            }
+            ParseFile profileImage = post.getUser().getParseFile("profileImage");
+            if (profileImage != null) {
+                Glide.with(context)
+                        .load(profileImage.getUrl())
+                        .transform(new CircleCrop())
+                        .into(ivProfile);
+            } else {
+                //ivImage.setImageResource(android.R.color.transparent);
+                Glide.with(context)
+                        .load(R.drawable.instagram_user_filled_24)
+                        .transform(new CircleCrop())
+                        .into(ivProfile);
             }
         }
     }
