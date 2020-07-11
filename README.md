@@ -1,8 +1,8 @@
-# Project 4 - *Name of App Here*
+# Project 4 - *Parstagram*
 
-**Name of your app** is a photo sharing app using Parse as its backend.
+**Parstagram** is a photo sharing app using Parse as its backend.
 
-Time spent: **X** hours spent in total
+Time spent: **30** hours spent in total
 
 ## User Stories
 
@@ -37,9 +37,9 @@ The following **stretch** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='Parstagram.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
-GIF created with [LiceCap](http://www.cockos.com/licecap/).
+GIF created with [Kap].
 
 ## Credits
 
