@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnComment2"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentBottom="false"
         android:layout_marginTop="8dp"
         android:text="TextView" />
 
@@ -84,4 +84,12 @@
         android:adjustViewBounds="true"
         android:background="@drawable/comment"
         android:cropToPadding="true" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvBody"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="8dp" />
 </RelativeLayout>

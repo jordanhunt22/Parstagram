@@ -23,8 +23,12 @@ import com.example.parstagram.EndlessScroll.EndlessRecyclerViewScrollListener;
 import com.example.parstagram.Post;
 import com.example.parstagram.R;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseRelation;
+import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,8 +102,25 @@ public class HomeFragment extends Fragment {
         // Adds the scroll listener to the RecyclerView
         rvPosts.addOnScrollListener(scrollListener);
 
-        // query posts from Parstagram
-        queryPosts();
+
+        ParseUser user = ParseUser.getCurrentUser();
+        user.fetchInBackground(new GetCallback<ParseObject>() {
+            @Override
+            public void done(final ParseObject object, ParseException e) {
+                ParseRelation<Post> likedPosts = object.getRelation("likes");
+                ParseQuery<Post> q = likedPosts.getQuery();
+                q.findInBackground(new FindCallback<Post>() {
+                    @Override
+                    public void done(List<Post> objects, ParseException e) {
+                        for(Post post : objects) {
+                            Post.postsLikedByCurrentuser.add(post.getObjectId());
+                        }
+                        queryPosts();
+                    }
+                });
+            }
+        });
+
     }
 
     protected void loadMoreData() {

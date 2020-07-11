@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,7 @@ import com.example.parstagram.MainActivity;
 import com.example.parstagram.Post;
 import com.example.parstagram.R;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseQuery;
@@ -59,6 +61,7 @@ public class ProfileFragment extends Fragment {
     public static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 43;
     Button btnLogOut;
     Button btnProfile;
+    TextView tvUsername;
     private File photoFile;
     public String photoFileName = "profilePhoto.jpg";
     ProfileAdapter pAdapter;
@@ -66,6 +69,7 @@ public class ProfileFragment extends Fragment {
     protected SwipeRefreshLayout swipeContainer;
     protected List<Post> allPosts;
     private ImageView ivProfile;
+    private ParseUser user;
 
     protected EndlessRecyclerViewScrollListener scrollListener;
 
@@ -79,6 +83,11 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Gets the bundle with user that was passed in
+        Bundle args = getArguments();
+        user = Parcels.unwrap(args.getParcelable("user"));
+
         // Lookup the swipe container view
         swipeContainer = view.findViewById(R.id.swipeContainer);
         // Setup refresh listener which triggers new data loading
@@ -99,8 +108,9 @@ public class ProfileFragment extends Fragment {
 
         rvPosts = view.findViewById(R.id.rvPosts);
         ivProfile = view.findViewById(R.id.ivProfile);
+        tvUsername = view.findViewById(R.id.tvUsername);
 
-        ParseFile profileImage = ParseUser.getCurrentUser().getParseFile("profileImage");
+        ParseFile profileImage = user.getParseFile("profileImage");
         if (profileImage != null) {
             Glide.with(getContext())
                     .load(profileImage.getUrl())
@@ -112,6 +122,9 @@ public class ProfileFragment extends Fragment {
                     .transform(new CircleCrop())
                     .into(ivProfile);
         }
+
+        // Sets the Username textview to the user's username
+        tvUsername.setText(user.getUsername());
 
         allPosts = new ArrayList<>();
         // Sets GridLayoutManager and changes the adapter
@@ -154,6 +167,22 @@ public class ProfileFragment extends Fragment {
 
         // query posts from Parstagram
         queryPosts();
+    }
+
+    private void getUserFromId(String userId) {
+        // Specify which class to query
+        ParseQuery<ParseUser> query = ParseQuery.getQuery(ParseUser.class);
+        // Specify the object id
+        query.getInBackground(userId, new GetCallback<ParseUser>() {
+            public void done(ParseUser returnedUser, ParseException e) {
+                if (e == null) {
+                    user = returnedUser;
+                } else {
+                    // something went wrong
+                }
+            }
+        });
+
     }
 
     private void goLogIn() {
@@ -205,7 +234,7 @@ public class ProfileFragment extends Fragment {
         // limits query to items that are older than the last item in the RecyclerView
         int numPosts = allPosts.size()-1;
         // only includes items that have the logged in user as the author
-        query.whereEqualTo("user", ParseUser.getCurrentUser());
+        query.whereEqualTo("user", user);
         Post last = allPosts.get(numPosts);
         // int lastCreated = last.getCreatedAt().toString();
         query.whereLessThan(Post.KEY_CREATED, last.getCreatedAt());
@@ -240,7 +269,7 @@ public class ProfileFragment extends Fragment {
         ParseQuery query = ParseQuery.getQuery(Post.class);
         query.include(Post.KEY_USER);
         // only includes items that have the logged in user as the author
-        query.whereEqualTo("user", ParseUser.getCurrentUser());
+        query.whereEqualTo("user", user);
         // limit query to latest 20 items
         query.setLimit(20);
         // order posts by creation date (newest first)

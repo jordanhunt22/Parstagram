@@ -36,6 +36,8 @@ import com.parse.ParseFile;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import org.parceler.Parcels;
+
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
@@ -84,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.action_profile:
                     default:
                         fragment = new ProfileFragment();
+                        Bundle args = new Bundle();
+                        args.putParcelable("user", Parcels.wrap(ParseUser.getCurrentUser()));
+                        fragment.setArguments(args);
                         break;
                 }
                 fragmentManager.beginTransaction().replace(R.id.flContainer, fragment).commit();
