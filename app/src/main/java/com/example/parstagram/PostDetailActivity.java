@@ -13,14 +13,18 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.example.parstagram.TimeFormat.TimeFormatter;
 import com.example.parstagram.databinding.ActivityPostDetailBinding;
+import com.parse.FindCallback;
+import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseRelation;
 import com.parse.ParseUser;
 
 import org.parceler.Parcels;
 
 import java.util.Collections;
+import java.util.List;
 
 public class PostDetailActivity extends AppCompatActivity {
 
@@ -30,9 +34,11 @@ public class PostDetailActivity extends AppCompatActivity {
     Post post;
 
     // The view objects
+    private int numLikes;
     private TextView tvUsername;
     private TextView tvBody;
     private TextView tvCreatedAt;
+    private TextView tvLikesCounter;
     private ImageView ivImage;
     private ImageButton btnLike;
     private ImageButton btnComment;
@@ -52,6 +58,7 @@ public class PostDetailActivity extends AppCompatActivity {
         tvCreatedAt = binding.tvCreatedAt;
         ivImage = binding.ivImage;
         btnLike = binding.btnLike;
+        tvLikesCounter = binding.tvLikesCounter;
 
         // Unwrap the post
         post = Parcels.unwrap(getIntent().getParcelableExtra(Post.class.getSimpleName()));
@@ -88,8 +95,9 @@ public class PostDetailActivity extends AppCompatActivity {
                     .into(btnLike);
         }
 
+        setPostLikes(post);
 
-
+        // Sets OnClickListener for the Like button
         btnLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -100,6 +108,10 @@ public class PostDetailActivity extends AppCompatActivity {
                             .load(R.drawable.heart)
                             .transform(new CenterCrop())
                             .into(btnLike);
+
+                    // Changes the value of the likes counter
+                    numLikes--;
+                    tvLikesCounter.setText(String.valueOf(numLikes));
                     Post.postsLikedByCurrentuser.removeAll(Collections.singleton(post.getObjectId()));
                     relation.remove(post);
                     Log.i(TAG, "unlike");
@@ -109,12 +121,32 @@ public class PostDetailActivity extends AppCompatActivity {
                             .load(R.drawable.heart_active)
                             .transform(new CenterCrop())
                             .into(btnLike);
+
+                    // Changes the value of the likes counter
+                    numLikes++;
+                    tvLikesCounter.setText(String.valueOf(numLikes));
                     relation.add(post);
                     Post.postsLikedByCurrentuser.add(post.getObjectId());
                     Log.i(TAG, "like");
                 }
                 user.saveInBackground();
+            }
+        });
+    }
 
+    private void setPostLikes(final Post post) {
+        ParseQuery<ParseUser> query = ParseUser.getQuery();
+        query.whereEqualTo("likes", post);
+        query.findInBackground(new FindCallback<ParseUser>() {
+            @Override
+            public void done(List<ParseUser> objects, ParseException e) {
+                if (e != null){
+                    Log.e(TAG, "There was an error returning the number of likes", e);
+                }
+                else{
+                    numLikes = objects.size();
+                    tvLikesCounter.setText(String.valueOf(numLikes));
+                }
             }
         });
     }
