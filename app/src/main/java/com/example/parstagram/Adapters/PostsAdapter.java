@@ -56,7 +56,6 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
     private Context context;
     private List<Post> posts;
     private boolean liked;
-    private ImageButton btnLike;
 
     public PostsAdapter(Context context, List<Post> posts) {
         this.context = context;
@@ -90,6 +89,7 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
         private ImageView ivProfile;
 
         private ImageButton btnComment;
+        private ImageButton btnLike;
         private ImageButton btnSend;
         private Post post;
 
@@ -157,6 +157,34 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
             btnLike.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    // Gets item position
+                    int position = getAdapterPosition();
+                    // Make sure the position is valid, i.e. actually exists in the view
+                    if (position != RecyclerView.NO_POSITION) {
+                        ParseUser user = ParseUser.getCurrentUser();
+                        ParseRelation<ParseObject> relation = user.getRelation("likes");
+                        // Get the movie at the position, this won't work if the class is static
+                        post = posts.get(position);
+                        if (isPostLiked(post)) {
+                            Glide.with(context)
+                                    .load(R.drawable.heart)
+                                    .transform(new CenterCrop())
+                                    .into(btnLike);
+                            Post.postsLikedByCurrentuser.removeAll(Collections.singleton(post.getObjectId()));
+                            relation.remove(post);
+                            Log.i(TAG, "unlike");
+                        }
+                        else{
+                            Glide.with(context)
+                                    .load(R.drawable.heart_active)
+                                    .transform(new CenterCrop())
+                                    .into(btnLike);
+                            relation.add(post);
+                            Post.postsLikedByCurrentuser.add(post.getObjectId());
+                            Log.i(TAG, "like");
+                        }
+                        user.saveInBackground();
+                    }
                 }
             });
         }
@@ -193,8 +221,28 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.ViewHolder> 
                         .into(ivProfile);
             }
 
+            if (isPostLiked(post)){
+                Glide.with(context)
+                        .load(R.drawable.heart_active)
+                        .transform(new CenterCrop())
+                        .into(btnLike);
+            }
+            else{
+                Glide.with(context)
+                        .load(R.drawable.heart)
+                        .transform(new CenterCrop())
+                        .into(btnLike);
+            }
+
 
         }
+    }
+
+    public boolean isPostLiked(Post post){
+        if (Post.postsLikedByCurrentuser.contains(post.getObjectId())){
+            return true;
+        }
+        else { return false; }
     }
 
     // Clean all elements of the recyclerview

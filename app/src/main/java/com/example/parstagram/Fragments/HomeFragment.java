@@ -121,6 +121,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
+
     }
 
     protected void loadMoreData() {
