@@ -37,7 +37,7 @@ The following **stretch** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='Parstagram.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='parstagram.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [Kap].
 
