@@ -55,7 +55,6 @@ public class RegisterFragment extends Fragment {
                 String username = etUsername.getText().toString();
                 String password = etPassword.getText().toString();
                 createUser(username, password);
-                goMainActivity();
             }
         });
     }
@@ -85,12 +84,10 @@ public class RegisterFragment extends Fragment {
             @Override
             public void done(ParseUser user, ParseException e) {
                 if (e != null) {
-                    // TODO: better error handling
                     Log.e(TAG, "Issue with login", e);
                     Toast.makeText(getContext(), "Issue with login!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // TODO: navigate to the main activity if the user has signed in properly
                 goMainActivity();
                 Toast.makeText(getContext(), "Success!", Toast.LENGTH_SHORT).show();
             }
