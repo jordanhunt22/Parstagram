@@ -124,6 +124,13 @@ public class HomeFragment extends Fragment {
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        queryPosts();
+
+    }
+
     protected void loadMoreData() {
         Log.i(TAG, "loadMoreData() called");
         ParseQuery query = ParseQuery.getQuery(Post.class);

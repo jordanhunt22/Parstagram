@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.parstagram.MainActivity;
+import com.example.parstagram.Post;
 import com.example.parstagram.R;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
@@ -95,6 +96,7 @@ public class RegisterFragment extends Fragment {
     }
 
     private void goMainActivity() {
+        Post.postsLikedByCurrentuser.clear();
         Intent i = new Intent(getContext(), MainActivity.class);
         startActivity(i);
         getActivity().finish();
