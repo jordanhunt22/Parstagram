@@ -30,7 +30,7 @@ The following **stretch** features are implemented:
   - [X] Display the profile photo with each post
   - [X] Tapping on a post's username or profile photo goes to that user's profile page
   - [X] User Profile shows posts in a grid view
-- [ ] User can comment on a post and see all comments for each post in the post details screen.
+- [X] User can comment on a post and see all comments for each post in the post details screen.
 - [ ] User can like a post and see number of likes for each post in the post details screen.
 
 ## Video Walkthrough
